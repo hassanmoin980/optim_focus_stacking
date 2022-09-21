@@ -133,6 +133,7 @@ def lap_focus_stacking(images, N=5, kernel_size=5):
 
     # 3.1 - init level N fusion canvas
     LP_N = np.zeros(list_lap_pyramids[0, -1].shape)
+    
     for m in range(LP_N.shape[0]):
         for n in range(LP_N.shape[1]):
             D_max_idx = np.argmax(D_N[:, m, n])
@@ -191,28 +192,28 @@ def lap_focus_stacking(images, N=5, kernel_size=5):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description=simple)
+    # parser = argparse.ArgumentParser(description=simple)
 
     # parse path to input folder
-    parser.add_argument('input_path', type=str, help='path to the directory containing input images')
-    parser.add_argument('--output_name', type=str, default='output.jpg',help='the output file name, default will be \'output.jpg\'')
-    parser.add_argument('--depth', type=int, default=5, help='depth(level) of Laplacian Pyramid, default to 5')
-    parser.add_argument('--k_size', type=int, default=5, help='kernel size of Gaussian Blurring used in pyramid')
-    parser.add_argument('-plot', action='store_true', help='run with this flag to show all process using matplotlib.')
-    parser.add_argument('-naive', action='store_true', help='run with this flag to use naive method (max LoG)')
-    parser.add_argument('-eval', action='store_true', help='run with this flag to evaluate the focusness before/after focus stacking using standard deviation')
+    # parser.add_argument('input_path', type=str, help='path to the directory containing input images')
+    # parser.add_argument('--output_name', type=str, default='output.jpg',help='the output file name, default will be \'output.jpg\'')
+    # parser.add_argument('--depth', type=int, default=5, help='depth(level) of Laplacian Pyramid, default to 5')
+    # parser.add_argument('--k_size', type=int, default=5, help='kernel size of Gaussian Blurring used in pyramid')
+    # parser.add_argument('-plot', action='store_true', help='run with this flag to show all process using matplotlib.')
+    # parser.add_argument('-naive', action='store_true', help='run with this flag to use naive method (max LoG)')
+    # parser.add_argument('-eval', action='store_true', help='run with this flag to evaluate the focusness before/after focus stacking using standard deviation')
 
-    args = parser.parse_args()
+    # args = parser.parse_args()
 
     # extract args
-    dir_path = '/home/hassan/Work/02_FISH/01_Codes/fish-repo/Focus_Stacking/test_img/test7'
-    output_name = args.output_name
+    dir_path = '/home/hassan/Work/repos/focus_stacking/test_img/test7'
+    output_name = 'merged.png'
     global isPlot
-    isPlot = args.plot
-    pyramid_depth = args.depth
-    kernel_size = args.k_size
-    naive = args.naive
-    eval = args.eval
+    isPlot = True
+    pyramid_depth = 2
+    kernel_size = 5
+    naive = False
+    eval = True
     
     # 1 - read files
     file_names = [img for img in glob.glob(os.path.join(dir_path, '*.jpg'))]

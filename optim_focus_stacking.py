@@ -36,18 +36,18 @@ class Stacks(MultiProcess):
         images_list[i] = image
 
     def read_images_from_path(self):
-        file_names = natsorted([img for img in glob.glob(os.path.join(self.INPUT_PATH, '*.jpg'))])
+        file_names = natsorted([img for img in glob.glob(os.path.join(self.INPUT_PATH, '*.png'))])
         return file_names
 
 class LaplacianPyramid():
-    def __init__(self, input_path, output_path, pyramid_depth):
+    def __init__(self, images, input_path, output_path, pyramid_depth):
         self.INPUT_PATH = input_path
         self.OUTPUT_PATH = output_path
         self.PYRAMID_DEPTH = pyramid_depth
-        self.LAP_PYR_LIST_BASE = self.lap_pyramid_initiate()
+        self.LAP_PYR_LIST_BASE = self.lap_pyramid_initiate(images)
 
-    def lap_pyramid_initiate(self):
-        images = Stacks(self.INPUT_PATH, self.OUTPUT_PATH).IMAGES
+    def lap_pyramid_initiate(self, images):
+        # images = Stacks(self.INPUT_PATH, self.OUTPUT_PATH).IMAGES
         list_lap_pyramids = []
         
         for img in images:
@@ -76,12 +76,12 @@ class LaplacianPyramid():
         return lap_pyramids   
 
 class RegionalFusion():
-    def __init__(self, input_path, output_path, pyramid_depth, kernel_size):
+    def __init__(self, images, input_path, output_path, pyramid_depth, kernel_size):
         self.INPUT_PATH = input_path
         self.OUTPUT_PATH = output_path
         self.PYRAMID_DEPTH = pyramid_depth
         self.KERNEL_SIZE = kernel_size
-        list_lap_pyramids, base = self.extract_pyramids_and_base()
+        list_lap_pyramids, base = self.extract_pyramids_and_base(images)
         
         LP_f = self.N_level_fusion(list_lap_pyramids)
         LP_f = self.other_levels_fusion(list_lap_pyramids, LP_f)
@@ -103,8 +103,8 @@ class RegionalFusion():
         self.CANVAS = fused_img
 
 
-    def extract_pyramids_and_base(self):
-        temp_list = LaplacianPyramid(self.INPUT_PATH, self.OUTPUT_PATH, self.PYRAMID_DEPTH).LAP_PYR_LIST_BASE
+    def extract_pyramids_and_base(self, images):
+        temp_list = LaplacianPyramid(images, self.INPUT_PATH, self.OUTPUT_PATH, self.PYRAMID_DEPTH).LAP_PYR_LIST_BASE
         return temp_list[0], temp_list[1]
 
     def other_levels_fusion(self, list_lap_pyramids, LP_f):
@@ -224,14 +224,13 @@ class RegionalFusion():
 profiler = cProfile.Profile()
 pyramid_depth = 10
 kernel_size = 5
-input_path='/home/hassan/mnt/Linux/repos/focus_stacking/test_imgs_2/DAPI'
+input_path='/home/hassan/mnt/Linux/repos/focus_stacking/test_imgs_1/Gold'
 output_path='/home/hassan/mnt/Linux/repos/focus_stacking/test_imgs/Gold'
 
 profiler.enable()
 
-canvas = RegionalFusion(input_path, output_path, pyramid_depth, kernel_size).CANVAS
-
-
+images = Stacks(input_path, output_path).IMAGES
+canvas = RegionalFusion(images, input_path, output_path, pyramid_depth, kernel_size).CANVAS
 
 profiler.disable()
 stats = pstats.Stats(profiler).sort_stats('cumtime')

@@ -36,7 +36,7 @@ class Stacks(MultiProcess):
         images_list[i] = image
 
     def read_images_from_path(self):
-        file_names = natsorted([img for img in glob.glob(os.path.join(self.INPUT_PATH, '*.png'))])
+        file_names = natsorted([img for img in glob.glob(os.path.join(self.INPUT_PATH, '*.jpg'))])
         return file_names
 
 class LaplacianPyramid():
@@ -112,12 +112,12 @@ class RegionalFusion():
         
         for l in reversed(range(0, self.PYRAMID_DEPTH-1)):
             
-            start_time = time.time()
-            print('Pyramid Level: ', l)
+            # start_time = time.time()
+            # print('Pyramid Level: ', l)
             RE_max_idx = self.region_energy_map(l, list_lap_pyramids)
             LP_l = self.compute_LP_l(l, list_lap_pyramids, RE_max_idx)
             LP_f.append(LP_l)
-            print("--- %s seconds ---" % (time.time() - start_time))
+            # print("--- %s seconds ---" % (time.time() - start_time))
 
         return LP_f     
     
@@ -224,16 +224,30 @@ class RegionalFusion():
 profiler = cProfile.Profile()
 pyramid_depth = 10
 kernel_size = 5
-input_path='/home/hassan/mnt/Linux/repos/focus_stacking/test_imgs_1/Gold'
+input_path='/home/hassan/mnt/Linux/repos/focus_stacking/test_imgs_3/Orange'
 output_path='/home/hassan/mnt/Linux/repos/focus_stacking/test_imgs/Gold'
 
 profiler.enable()
 
 images = Stacks(input_path, output_path).IMAGES
-canvas = RegionalFusion(images, input_path, output_path, pyramid_depth, kernel_size).CANVAS
+
+section_size = 1000
+h_sections = np.ceil(images.shape[1]/section_size).astype('uint8')
+w_sections = np.ceil(images.shape[2]/section_size).astype('uint8')
+canvas = np.zeros((images.shape[1], images.shape[2]), dtype = 'int16')
+i = 0
+
+for h in range(h_sections):
+    for w in range(w_sections):
+        i += 1
+        roi = images[:, h*section_size:(h+1)*section_size, w*section_size:(w+1)*section_size]
+        canvas[h*section_size:(h+1)*section_size, w*section_size:(w+1)*section_size] = RegionalFusion(roi, input_path, output_path, pyramid_depth, kernel_size).CANVAS
+        print(str(i)+'/'+str(h_sections*w_sections)+' region.')
 
 profiler.disable()
 stats = pstats.Stats(profiler).sort_stats('cumtime')
 stats.print_stats()
+filename = 'profile.prof'
+stats.dump_stats(filename)
 
 cv2.imwrite('output.jpg', canvas)
